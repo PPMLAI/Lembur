@@ -194,6 +194,21 @@
             background-color: #128f76;
         }
 
+        .btn-sheets {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-sheets:hover {
+            background-color: #1e8449;
+        }
+
         .btn-reset {
             background-color: #e74c3c;
             color: white;
@@ -220,7 +235,7 @@
         @media (max-width: 768px) {
             th, td { padding: 8px 10px; font-size: 14px; }
             .control-panel { flex-direction: column; align-items: stretch; }
-            .btn-save, .btn-reset { width: 100%; text-align: center; }
+            .btn-save, .btn-sheets, .btn-reset { width: 100%; text-align: center; }
         }
     </style>
 </head>
@@ -270,7 +285,8 @@
                 <option value="Bis A">Bis A</option>
             </select>
         </div>
-        <button class="btn-save" onclick="simpanAbsensi()">Simpan Data</button>
+        <button class="btn-sheets" onclick="simpanKeSpreadsheet()">Simpan ke Spreadsheet</button>
+        <button class="btn-save" onclick="simpanAbsensi()">Unduh File JSON</button>
         <button class="btn-reset" onclick="resetAbsensi()">Reset Data</button>
     </div>
 
@@ -297,6 +313,9 @@
 </footer>
 
 <script>
+    // MASUKKAN URL WEB APP APPS SCRIPT ANDA DI SINI
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz0h6LikJUhGQTuXGK_i6UTLYYeoInEORDVm303DyLSmXmSvJTr3M9PqLGH0wyyJq6y3Q/exec";
+
     // Database Peserta Hasil Pembaruan Sesuai Data Excel/CSV Terbaru
     const dataPesertaMaster = [
         // BIS 1
@@ -710,8 +729,45 @@
         });
     }
 
+    function simpanKeSpreadsheet() {
+        if (WEB_APP_URL === "MOHON_GANTI_DENGAN_URL_WEB_APP_ANDA") {
+            alert("Gagal: Mohon konfigurasi URL Web App Google Apps Script terlebih dahulu pada kode index.html!");
+            return;
+        }
+
+        if (!confirm("Apakah Anda ingin menyinkronkan data kehadiran terbaru ke Google Spreadsheet?")) {
+            return;
+        }
+
+        const reportData = dataPesertaMaster.map(peserta => {
+            return {
+                id: peserta.id,
+                nama: peserta.nama,
+                bis: peserta.bis,
+                jumlah_pax: peserta.jumlah,
+                absen_datang: statusAbsensi[peserta.id]?.datang ? "Hadir" : "Belum Hadir",
+                absen_pulang: statusAbsensi[peserta.id]?.pulang ? "Hadir" : "Belum Hadir"
+            };
+        });
+
+        fetch(WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(reportData)
+        })
+        .then(() => {
+            alert("Data absensi berhasil dikirim dan diperbarui ke Spreadsheet!");
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Terjadi kesalahan saat mengirim data ke Spreadsheet.");
+        });
+    }
+
     function simpanAbsensi() {
-        // Membuat gabungan data peserta master dan status kehadiran terkininya
         const reportData = dataPesertaMaster.map(peserta => {
             return {
                 id: peserta.id,
@@ -726,7 +782,6 @@
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 4));
         const downloadAnchor = document.createElement('a');
         
-        // Penamaan file dinamis berdasarkan waktu unduh
         const tanggal = new Date().toISOString().slice(0,10);
         downloadAnchor.setAttribute("href", dataStr);
         downloadAnchor.setAttribute("download", `Laporan_Absensi_FamGath_LAI_${tanggal}.json`);
