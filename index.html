@@ -115,6 +115,7 @@
             background: #f1f4f6;
             padding: 15px;
             border-radius: 8px;
+            align-items: center;
         }
 
         .search-box, .filter-box {
@@ -178,6 +179,21 @@
 
         .badge.bis { background-color: #9b59b6; }
 
+        .btn-save {
+            background-color: #18bc9c;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-save:hover {
+            background-color: #128f76;
+        }
+
         .btn-reset {
             background-color: #e74c3c;
             color: white;
@@ -203,7 +219,8 @@
 
         @media (max-width: 768px) {
             th, td { padding: 8px 10px; font-size: 14px; }
-            .control-panel { flex-direction: column; }
+            .control-panel { flex-direction: column; align-items: stretch; }
+            .btn-save, .btn-reset { width: 100%; text-align: center; }
         }
     </style>
 </head>
@@ -253,6 +270,7 @@
                 <option value="Bis A">Bis A</option>
             </select>
         </div>
+        <button class="btn-save" onclick="simpanAbsensi()">Simpan Data</button>
         <button class="btn-reset" onclick="resetAbsensi()">Reset Data</button>
     </div>
 
@@ -486,7 +504,7 @@
         { id: 188, nama: "Dwiki Putra Bachrul Ilmi", bis: "BIS 8", jumlah: 1 },
         { id: 189, nama: "Everyan Suhendar", bis: "BIS 8", jumlah: 1 },
         { id: 190, nama: "Idris", bis: "BIS 8", jumlah: 1 },
-        { id: 191, nama: "Imanuel Raya Ginting", bis: "BIS 8", jumlah: 5 },
+        { id: 191, nama: "Imanuel Raya Ginting", bis: "BIS 5", jumlah: 5 },
         { id: 192, nama: "Nilam Cahya", bis: "BIS 8", jumlah: 1 },
         { id: 193, nama: "Oktavianus Dendhi", bis: "BIS 8", jumlah: 1 },
         { id: 194, nama: "Wati Aryati Hutapea", bis: "BIS 8", jumlah: 1 },
@@ -690,6 +708,31 @@
                 tbody.appendChild(tr);
             }
         });
+    }
+
+    function simpanAbsensi() {
+        // Membuat gabungan data peserta master dan status kehadiran terkininya
+        const reportData = dataPesertaMaster.map(peserta => {
+            return {
+                id: peserta.id,
+                nama: peserta.nama,
+                bis: peserta.bis,
+                jumlah_pax: peserta.jumlah,
+                absen_datang: statusAbsensi[peserta.id]?.datang ? "Hadir" : "Belum Hadir",
+                absen_pulang: statusAbsensi[peserta.id]?.pulang ? "Hadir" : "Belum Hadir"
+            };
+        });
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reportData, null, 4));
+        const downloadAnchor = document.createElement('a');
+        
+        // Penamaan file dinamis berdasarkan waktu unduh
+        const tanggal = new Date().toISOString().slice(0,10);
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `Laporan_Absensi_FamGath_LAI_${tanggal}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
     }
 
     function resetAbsensi() {
