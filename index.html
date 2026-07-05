@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Pencatatan Lembur Teknisi PPM LAI</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background:#edf2f7;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.header{
+    background:#1565C0;
+    color:white;
+    padding:20px 15px;
+    text-align:center;
+}
+
+.header h1 {
+    font-size:24px;
+    font-weight:bold;
+    margin-bottom: 5px;
+}
+
+/* Style Widget Jam Digital */
+.live-clock {
+    font-size: 14px;
+    font-weight: normal;
+    background: rgba(0, 0, 0, 0.15);
+    display: inline-block;
+    padding: 6px 15px;
+    border-radius: 20px;
+    margin-top: 5px;
+    letter-spacing: 0.5px;
+}
+
+.container{
+    width:95%;
+    max-width:900px;
+    margin:20px auto;
+    flex: 1;
+}
+
+.card{
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+    margin-bottom:20px;
+}
+
+.card h3{
+    margin-bottom:15px;
+    color:#1565C0;
+}
+
+label{
+    display:block;
+    margin-top:10px;
+    margin-bottom:5px;
+    font-weight:bold;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    padding:10px;
+    border:1px solid #bbb;
+    border-radius:5px;
+}
+
+textarea{
+    resize:none;
+    height:80px;
+}
+
+button{
+    width:100%;
+    margin-top:20px;
+    padding:12px;
+    background:#1565C0;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+button:hover{
+    background:#0D47A1;
+}
+
+.stat{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+}
+
+.box{
+    background:#1976D2;
+    color:white;
+    padding:15px;
+    border-radius:8px;
+    text-align:center;
+}
+
+/* Warna hijau khusus untuk membedakan total jam lembur */
+.box.jam {
+    background:#2E7D32;
+}
+
+.box h2{
+    margin-top:8px;
+    font-size: 18px;
+}
+
+.box span {
+    font-size: 12px;
+    display: block;
+    margin-top: 2px;
+    opacity: 0.9;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+table th{
+    background:#1565C0;
+    color:white;
+    padding:10px;
+}
+
+table td{
+    border:1px solid #ddd;
+    padding:8px;
+    text-align:center;
+}
+
+/* Style Tambahan untuk Footer */
+.footer {
+    background: #1565C0;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    font-size: 14px;
+    margin-top: 20px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+@media(max-width:700px){
+    .stat{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>PENCATATAN LEMBUR TEKNISI PPM LAI</h1>
+    <div class="live-clock" id="liveClock">Memuat waktu...</div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h3>Form Input Lembur</h3>
+        
+        <label>Nama Karyawan</label>
+        <select id="nama">
+            <option>Supriyadi</option>
+            <option>Timur</option>
+            <option>Agus Setiawan</option>
+            <option>Julio</option>
+            <option>Joyo S.</option>
+            <option>Agus Purwanto</option>
+        </select>
+
+        <label>Tanggal Lembur</label>
+        <input type="date" id="tanggal">
+
+        <label>Jam Mulai</label>
+        <input type="time" id="mulai">
+
+        <label>Jam Pulang</label>
+        <input type="time" id="selesai">
+
+        <label>Durasi Lembur</label>
+        <input type="text" id="durasi" readonly>
+
+        <label>Yang Dikerjakan Saat Lembur</label>
+        <textarea id="pekerjaan"></textarea>
+
+        <button onclick="simpanData()">SIMPAN DATA</button>
+    </div>
+
+    <div class="card">
+        <h3>Frekuensi Lembur Bulan Ini</h3>
+        <div class="stat">
+            <div class="box">Supriyadi<h2 id="s1">0</h2><span>Kali</span></div>
+            <div class="box">Timur<h2 id="s2">0</h2><span>Kali</span></div>
+            <div class="box">Agus Setiawan<h2 id="s3">0</h2><span>Kali</span></div>
+            <div class="box">Julio<h2 id="s4">0</h2><span>Kali</span></div>
+            <div class="box">Joyo S.<h2 id="s5">0</h2><span>Kali</span></div>
+            <div class="box">Agus Purwanto<h2 id="s6">0</h2><span>Kali</span></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Total Jam Lembur Bulan Ini (Dashboard)</h3>
+        <div class="stat">
+            <div class="box jam">Supriyadi<h2 id="j1">0j 0m</h2></div>
+            <div class="box jam">Timur<h2 id="j2">0j 0m</h2></div>
+            <div class="box jam">Agus Setiawan<h2 id="j3">0j 0m</h2></div>
+            <div class="box jam">Julio<h2 id="j4">0j 0m</h2></div>
+            <div class="box jam">Joyo S.<h2 id="j5">0j 0m</h2></div>
+            <div class="box jam">Agus Purwanto<h2 id="j6">0j 0m</h2></div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h3>Data Detail Jam Lembur Bulan Ini (Tabel)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Teknisi</th>
+                    <th>Total Jam</th>
+                </tr>
+            </thead>
+            <tbody id="totalLemburBulanan"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3>Data Lembur</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>Tanggal</th>
+                    <th>Mulai</th>
+                    <th>Pulang</th>
+                    <th>Durasi</th>
+                    <th>Pekerjaan</th>
+                </tr>
+            </thead>
+            <tbody id="tabelData"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="footer">
+    @2026 GUSPUR PPM LAI
+</div>
+
+<script>
+//==================================================
+// DEKLARASI ELEMEN HTML
+//==================================================
+const nama = document.getElementById("nama");
+const tanggal = document.getElementById("tanggal");
+const mulai = document.getElementById("mulai");
+const selesai = document.getElementById("selesai");
+const durasi = document.getElementById("durasi");
+const pekerjaan = document.getElementById("pekerjaan");
+const tabelData = document.getElementById("tabelData");
+const liveClock = document.getElementById("liveClock");
+
+// Elemen Frekuensi
+const s1 = document.getElementById("s1");
+const s2 = document.getElementById("s2");
+const s3 = document.getElementById("s3");
+const s4 = document.getElementById("s4");
+const s5 = document.getElementById("s5");
+const s6 = document.getElementById("s6");
+
+// Elemen Total Jam Dashboard
+const j1 = document.getElementById("j1");
+const j2 = document.getElementById("j2");
+const j3 = document.getElementById("j3");
+const j4 = document.getElementById("j4");
+const j5 = document.getElementById("j5");
+const j6 = document.getElementById("j6");
+
+//==================================================
+// URL WEB APP APPS SCRIPT
+//==================================================
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxKzNC1DiAQGnoBYuMHCGC649mNbBZjvMlUwEPiTP8CBEGFIbevBm1YGpcLhdVZ1Ecz8Q/exec";
+
+//==================================================
+// LIVE CLOCK & TANGGAL DASHBOARD (FORMAT INDONESIA)
+//==================================================
+function updateLiveClock() {
+    const sekarang = new Date();
+    const opsiTanggal = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    };
+    const tanggalIndo = sekarang.toLocaleDateString('id-ID', opsiTanggal);
+    
+    const jam = String(sekarang.getHours()).padStart(2, '0');
+    const menit = String(sekarang.getMinutes()).padStart(2, '0');
+    const detik = String(sekarang.getSeconds()).padStart(2, '0');
+    const jamIndo = `${jam}.${menit}.${detik} WIB`;
+    
+    liveClock.innerHTML = `${tanggalIndo} | ${jamIndo}`;
+}
+setInterval(updateLiveClock, 1000);
+
+//==================================================
+// HITUNG DURASI LEMBUR
+//==================================================
+function hitungDurasi(){
+    if(mulai.value=="" || selesai.value==""){
+        durasi.value="";
+        return;
+    }
+
+    let m1 = mulai.value.split(":");
+    let m2 = selesai.value.split(":");
+
+    let awal = parseInt(m1[0])*60 + parseInt(m1[1]);
+    let akhir = parseInt(m2[0])*60 + parseInt(m2[1]);
+
+    if(akhir < awal){
+        akhir += 24*60;
+    }
+
+    let selisih = akhir-awal;
+    let jam = Math.floor(selisih/60);
+    let menit = selisih%60;
+
+    durasi.value = jam+" Jam "+menit+" Menit";
+}
+
+mulai.addEventListener("change", hitungDurasi);
+selesai.addEventListener("change", hitungDurasi);
+
+//==================================================
+// FORMAT TANGGAL KE INDONESIA
+//==================================================
+function ubahKeTanggalIndonesia(tanggalMentah) {
+    if (!tanggalMentah) return "-";
+    
+    let tgl, bln, thn;
+    
+    if (tanggalMentah.includes("T") || (tanggalMentah.includes("-") && tanggalMentah.split("-")[0].length === 4)) {
+        const d = new Date(tanggalMentah);
+        if (isNaN(d.getTime())) return tanggalMentah;
+        tgl = d.getDate();
+        bln = d.getMonth();
+        thn = d.getFullYear();
+    } else if (tanggalMentah.includes("-")) { 
+        let pecah = tanggalMentah.split("-");
+        tgl = parseInt(pecah[0], 10);
+        bln = parseInt(pecah[1], 10) - 1;
+        thn = parseInt(pecah[2], 10);
+    } else {
+        return tanggalMentah;
+    }
+
+    const namaBulan = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+
+    return `${tgl} ${namaBulan[bln]} ${thn}`;
+}
+
+function formatTanggal(tanggalInput){
+    if(!tanggalInput) return "";
+    const d = new Date(tanggalInput);
+    let tgl = String(d.getDate()).padStart(2,"0");
+    let bln = String(d.getMonth()+1).padStart(2,"0");
+    let thn = d.getFullYear();
+
+    return tgl+"-"+bln+"-"+thn;
+}
+
+//==================================================
+// SIMPAN DATA KE SPREADSHEET
+//==================================================
+function simpanData(){
+    if(tanggal.value==""){
+        alert("Tanggal belum diisi");
+        return;
+    }
+
+    if(pekerjaan.value==""){
+        alert("Pekerjaan belum diisi");
+        return;
+    }
+
+    let jamMulaiIndo = mulai.value ? mulai.value.replace(":", ".") + " WIB" : "-";
+    let jamSelesaiIndo = selesai.value ? selesai.value.replace(":", ".") + " WIB" : "-";
+
+    let data = {
+        nama: nama.value,
+        tanggal: formatTanggal(tanggal.value),
+        mulai: jamMulaiIndo,
+        selesai: jamSelesaiIndo,
+        durasi: durasi.value ? durasi.value : "-",
+        pekerjaan: pekerjaan.value
+    };
+
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(data)
+    })
+    .then(res => res.text())
+    .then(res => {
+        alert("Data berhasil disimpan!");
+        setTimeout(loadData,1500);
+        
+        pekerjaan.value = "";
+        durasi.value = "";
+        mulai.value = "";
+        selesai.value = "";
+    })
+    .catch(err => {
+        alert("Gagal menyimpan data");
+        console.error(err);
+    });
+}
+
+//==================================================
+// AMBIL DATA DARI APPS SCRIPT
+//==================================================
+function loadData(){
+    fetch(SCRIPT_URL)
+    .then(res => res.json())
+    .then(data => {
+        tampilTabel(data);
+        statistik(data);
+    })
+    .catch(err => {
+        console.error("Gagal memuat data:", err);
+    });
+}
+
+//==================================================
+// TAMPILKAN DATA KE TABEL UTAMA
+//==================================================
+function tampilTabel(data){
+    let html = "";
+    data.forEach(function(d){
+        html += `
+        <tr>
+            <td>${d.nama}</td>
+            <td>${ubahKeTanggalIndonesia(d.tanggal)}</td>
+            <td>${d.mulai}</td>
+            <td>${d.selesai}</td>
+            <td>${d.durasi}</td>
+            <td>${d.pekerjaan}</td>
+        </tr>
+        `;
+    });
+    tabelData.innerHTML = html;
+}
+
+//==================================================
+// DASHBOARD STATISTIK FREKUENSI & TOTAL JAM (UPDATED)
+//==================================================
+function statistik(data){
+    const teknisi = ["Supriyadi", "Timur", "Agus Setiawan", "Julio", "Joyo S.", "Agus Purwanto"];
+    let jumlah = {}, totalJam = {};
+    
+    teknisi.forEach(n => {
+        jumlah[n] = 0;
+        totalJam[n] = 0;
+    });
+
+    const now = new Date();
+    const bulanSekarang = now.getMonth() + 1;
+    const tahunSekarang = now.getFullYear();
+
+    data.forEach(item => {
+        if (!item.tanggal || !item.nama) return;
+        
+        let blnData, thnData;
+        
+        if (/^\d{2}-\d{2}-\d{4}$/.test(item.tanggal)) {
+            const pecah = item.tanggal.split("-");
+            blnData = parseInt(pecah[1], 10);
+            thnData = parseInt(pecah[2], 10);
+        } else {
+            const d = new Date(item.tanggal);
+            if (isNaN(d.getTime())) return; 
+            blnData = d.getMonth() + 1;
+            thnData = d.getFullYear();
+        }
+
+        if (blnData === bulanSekarang && thnData === tahunSekarang) {
+            if (jumlah[item.nama] !== undefined) jumlah[item.nama]++;
+            
+            const m = (item.durasi || "").match(/(\d+)\s*Jam\s*(\d+)\s*Menit/i);
+            if (m && totalJam[item.nama] !== undefined) {
+                totalJam[item.nama] += parseInt(m[1], 10) + parseInt(m[2], 10) / 60;
+            }
+        }
+    });
+
+    // 1. Tampilkan data Frekuensi (Box Biru)
+    const elemenS = [s1, s2, s3, s4, s5, s6];
+    elemenS.forEach((e, i) => {
+        if (e) e.innerHTML = jumlah[teknisi[i]];
+    });
+
+    // 2. Tampilkan data Total Jam ke Dashboard (Box Hijau Baru)
+    const elemenJ = [j1, j2, j3, j4, j5, j6];
+    elemenJ.forEach((e, i) => {
+        if (e) {
+            let namaTeknisi = teknisi[i];
+            let totalJamMentah = totalJam[namaTeknisi];
+            let jam = Math.floor(totalJamMentah);
+            let menit = Math.round((totalJamMentah - jam) * 60);
+            e.innerHTML = `${jam}j ${menit}m`;
+        }
+    });
+
+    // 3. Tampilkan data Detail ke Tabel Bawah
+    document.getElementById("totalLemburBulanan").innerHTML = teknisi.map(n => {
+        let j = Math.floor(totalJam[n]);
+        let mn = Math.round((totalJam[n] - j) * 60);
+        return `<tr><td style="text-align:left;padding-left:20px;">${n}</td><td><strong>${j} Jam ${mn} Menit</strong></td></tr>`;
+    }).join("");
+}
+
+window.onload = function() {
+    updateLiveClock();
+    loadData();
+    setInterval(loadData, 3000);
+};
+</script>
+
+</body>
+</html>
