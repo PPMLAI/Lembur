@@ -648,6 +648,26 @@
         let technicianChartInstance = null;
         let machineRepairChartInstance = null;
 
+        // Fungsi Helper Format Tanggal Indonesia (Contoh: 15 Januari 2026 atau 15 Jan 2026)
+        function formatTanggalIndonesia(dateString) {
+            if (!dateString) return '-';
+            const d = new Date(dateString);
+            if (isNaN(d.getTime())) return dateString; // Jika format teks manual, kembalikan apa adanya
+            return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        // Fungsi Helper Format Jam Indonesia (HH.mm WIB)
+        function formatJamIndonesia(timeString) {
+            if (!timeString) return '-';
+            // Jika format dari input time (HH:mm atau HH:mm:ss)
+            let cleanTime = timeString.toString().trim();
+            if (cleanTime.includes(':')) {
+                let parts = cleanTime.split(':');
+                return `${parts[0]}.${parts[1]} WIB`;
+            }
+            return cleanTime;
+        }
+
         // Fungsi Switcher Tampilan Navbar Utama
         function switchView(viewName) {
             document.getElementById('viewPerbaikan').classList.remove('active');
@@ -669,8 +689,10 @@
         // ================= SCRIPT PERBAIKAN =================
         function updateDateTime() {
             const now = new Date();
-            document.getElementById('currentDate').innerText = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-            document.getElementById('currentTime').innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' WIB';
+            // Format tanggal header: 15 Januari 2026
+            document.getElementById('currentDate').innerText = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            // Format jam header menggunakan titik (.): 14.37 WIB
+            document.getElementById('currentTime').innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', '.') + ' WIB';
         }
 
         function updateGreeting() {
@@ -737,7 +759,7 @@
 
             tbody.innerHTML = data.map(item => `
                 <tr>
-                    <td class="text-nowrap">${item.tanggalPengerjaan || '-'}</td>
+                    <td class="text-nowrap">${formatTanggalIndonesia(item.tanggalPengerjaan)}</td>
                     <td class="fw-semibold text-nowrap">${item.namaMesin || '-'}</td>
                     <td>${item.analisaKerusakan || '-'}</td>
                     <td>${item.uraianPerbaikan || '-'}</td>
@@ -809,7 +831,7 @@
             );
             document.getElementById('tableBodyPerbaikan').innerHTML = filtered.map(item => `
                 <tr>
-                    <td class="text-nowrap">${item.tanggalPengerjaan || '-'}</td>
+                    <td class="text-nowrap">${formatTanggalIndonesia(item.tanggalPengerjaan)}</td>
                     <td class="fw-semibold text-nowrap">${item.namaMesin || '-'}</td>
                     <td>${item.analisaKerusakan || '-'}</td>
                     <td>${item.uraianPerbaikan || '-'}</td>
@@ -851,10 +873,12 @@
 
         function updateClockLembur() {
             const sekarang = new Date();
+            // Format hari, tanggal lengkap indonesia: Senin, 15 Januari 2026
             const tgl = sekarang.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             const jam = String(sekarang.getHours()).padStart(2, '0');
             const menit = String(sekarang.getMinutes()).padStart(2, '0');
             const detik = String(sekarang.getSeconds()).padStart(2, '0');
+            // Format Jam menggunakan titik (.) dan standar WIB
             document.getElementById('liveClockLembur').innerHTML = `${tgl} | ${jam}.${menit}.${detik} WIB`;
         }
         setInterval(updateClockLembur, 1000);
@@ -880,8 +904,8 @@
             let data = {
                 nama: document.getElementById("namaLembur").value,
                 tanggal: tgl,
-                mulai: mulaiLembur.value ? mulaiLembur.value.replace(":", ".") + " WIB" : "-",
-                selesai: selesaiLembur.value ? selesaiLembur.value.replace(":", ".") + " WIB" : "-",
+                mulai: mulaiLembur.value ? formatJamIndonesia(mulaiLembur.value) : "-",
+                selesai: selesaiLembur.value ? formatJamIndonesia(selesaiLembur.value) : "-",
                 durasi: durasiLembur.value || "-",
                 pekerjaan: pek
             };
@@ -911,7 +935,12 @@
         function tampilTabelLembur(data) {
             document.getElementById("tabelDataLembur").innerHTML = data.map(d => `
                 <tr>
-                    <td>${d.nama}</td><td>${d.tanggal}</td><td>${d.mulai}</td><td>${d.selesai}</td><td>${d.durasi}</td><td>${d.pekerjaan}</td>
+                    <td>${d.nama}</td>
+                    <td>${formatTanggalIndonesia(d.tanggal)}</td>
+                    <td>${formatJamIndonesia(d.mulai)}</td>
+                    <td>${formatJamIndonesia(d.selesai)}</td>
+                    <td>${d.durasi}</td>
+                    <td>${d.pekerjaan}</td>
                 </tr>
             `).join('');
         }
